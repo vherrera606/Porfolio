@@ -1,0 +1,431 @@
+
+*libname learn 'C:\Users\Victor H\Documents\My SAS Files';
+*libname myfmts 'C:\Users\Victor H\Documents\My SAS Files\formats';
+*options fmtsearch=(myfmts);
+
+proc format;
+value agegrp 0 - 30 = '0 to 30'
+31 - 50 = '31 to 50'
+51 - 70 = '50 to 70'
+71 - high = '71 and older'; value $party 'D' = 'Democrat' 'R' = 'Republican';
+value $likert '1' = 'Strongly Disagree' '2' = 'Disagree'
+'3' = 'No Opinion' '4' = 'Agree'
+'5' = 'Strongly Agree';
+value $three '1','2' = 'Disagreement' '3' = 'No opinion'
+'4','5' = 'Agreement';
+run;
+data voter;
+input Age Party : $1. (Ques1-Ques4)($1. + 1); label Ques1 = 'The president is doing a good job' Ques2 = 'Congress is doing a good job'
+Ques3 = 'Taxes are too high'
+Ques4 = 'Government should cut spending'; format Age agegrp.
+Party $party.
+Ques1-Ques4 $likert. Ques1-Ques4 $three.; datalines;
+23	D	1	1	2	2
+45	R	5	5	4	1
+67	D	2	4	3	3
+39	R	4	4	4	4
+19	D	2	1	2	1
+75	D	3	3	2	3
+57	R	4	3	4	4
+;
+title "Listing of Voter"; proc print data=voter; run;
+title "Frequencies on the Four Questions";
+proc freq data=voter; tables Ques1-Ques4; run;
+ 
+
+
+
+
+
+1)
+
+Subj	Drug	Total Cholesterol	LDL	HDL
+1	Placebo	250	140	40
+2	Active	200	110	54
+3	Active	180	90	48
+4	Placebo	233	127	34
+5	Active	210	127	46
+6	Placebo	260	150	59
+
+data drugtest; input
+ 
+
+
+
+
+run;
+
+
+datalines;
+ 
+Subject $ Drug $ TotChol LDL
+HDL;
+ 
+1	Placebo	250	140	40
+2	Active	200	110	54
+3	Active	180	90	48
+4	Placebo	233	127	34
+5	Active	210	127	46
+6	Placebo	260	150	59
+
+
+;
+
+proc print data=drugtest;
+run;
+ 
+
+1)
+data school;
+input Age Quiz : $1. Midterm Final;
+
+if Age eq 12 then AgeGroup = 6;
+else if Age eq 13 then AgeGroup = 8;
+
+if Quiz = 'A'
+then QuizRange = 95; if Quiz = 'B'
+then QuizRange = 85; if Quiz = 'C'
+then QuizRange = 75; if Quiz = 'D'
+then QuizRange = 70; if Quiz = 'F'
+then QuizRange = 65;
+Grade = QuizRange*.2 + Midterm*.3 + Final*.5 ; datalines;
+
+
+
+
+;
+
+title "Listing of School"; proc print data=school; run;
+ 
+
+
+
+
+
+1)
+data vitals; input ID : $3. Age
+Pulse SBP DBP;
+label SBP = "Systolic Blood Pressure" DBP = "Diastolic Blood Pressure"; datalines;
+001 23 68 120 80
+002 55 72 188 96
+003 78 82 200 100
+004 18 58 110 70
+005 43 52 120 82
+006 37 74 150 98
+007 . 82 140 100
+;
+
+data newvitals; set vitals;
+if Age lt 50 and not missing(Age) then do; if Pulse lt 70 then PulseGroup = 'Low '; else PulseGroup = 'High';
+if SBP lt 140 then SBPGroup = 'Low '; else SBPGroup = 'High';
+end;
+else if Age ge 50 then do;
+if Pulse lt 74 then PulseGroup = 'Low'; else PulseGroup = 'High';
+if SBP lt 140 then SBPGroup = 'Low'; else SBPGroup = 'High';
+end;
+run;
+title "Listing of NEWVITALS"; proc print data=newvitals noobs; run;
+ 
+2)
+
+data monthsales; input month sales @@; sumsales+sales; retain sumsales 0; datalines;
+1 4000 2 5000 3 . 4 5500 5 5000 6 6000
+7 6500 8 4500 9 5100 10 5700 11 6500 12 7500
+;
+proc print data=monthsales;
+run;
+
+
+7)
+data plotit;
+do x = 0 to 10 by .1; y = 3*x**2 - 5*x + 10; output;
+end;
+run;
+goptions reset=all ftext='arial' htext=1.0 ftitle='arial/bo' htitle=1.5 colors=(black); symbol v=none i=sm; title "Problem 7";
+proc gplot data=plotit; plot y * x;
+run; quit;
+8)
+data logitplot;
+do p=0 to 1 by 0.05; Logit=LOG(p/(1-p)); output;
+end;
+run;
+goptions reset=all ftext='arial' htext=1.0 ftitle='arial/bo' htitle=1.5 colors=(black);
+symbol v=none i=sm; title "Logit Plot";
+proc gplot data=logitplot; plot Logit * p;
+run; quit;
+ 
+11)
+data temperature; length City $ 7;
+do City = 'Dallas','Houston'; do Hour = 1 to 24;
+input Temp @; output;
+end; end;
+datalines;
+80 81 82 83 84 84 87 88 89 89
+91 93 93 95 96 97 99 95 92 90 88
+86 84 80 78 76 77 78
+80 81 82 82 86
+88 90 92 92 93 96 94 92 90
+88 84 82 78 76 74
+;
+title "Temperatures in Dallas and Houston";
+proc print data=temperature;
+run; 13)
+data money;
+do Year = 1 to 999 until (Amount ge 30000); Amount + 1000;
+do Quarter = 1 to 4; Amount + Amount*(.0425/4); output;
+end; end;
+format Amount dollar10.;
+run;
+title "Listing of MONEY"; proc print data=money; run;
+
+
+8)
+data dataset;
+input Day Month Year; datalines;
+25 12 2005
+1 1 1960
+21 10 1946
+;
+
+data sevenques8; set dataset;
+Date = mdy(Month,Day,Year); format Date  mmddyy10.; run;
+
+proc print data=sevenques8;
+run;
+ 
+9)
+data dates;
+input Day Month Year;
+if missing(Day) then Date = mdy(Month,15,Year); else Date = mdy(Month,Day,Year);
+format Date mmddyy10.; datalines;
+25 12 2005
+. 5 2002
+12 8	2006
+;
+
+title "Listing of DATES"; proc print data=dates noobs; run;
+
+
+1)
+data subset_a; set learn.blood;
+where Gender eq 'Female' and BloodType='AB'; Combined = .001*WBC + RBC;
+run;
+title "Listing of SUBSET_A"; proc print data=subset_a noobs; run; data subset_b;
+set learn.blood;
+Combined = .001*WBC + RBC;
+if Gender eq 'Female' and BloodType='AB' and Combined ge 14; run;
+title "Listing of SUBSET_B"; proc print data=subset_b noobs; run;
+title "Listing of SUBSET_B"; proc print data=subset_b noobs; run;
+
+
+2)
+data work.monday2002; set work.hosp;
+where year(AdmitDate) eq 2002 and weekday(AdmitDate) eq 2;
+Age = round(yrdif(DOB,AdmitDate,'Actual'));
+run;
+title "Listing of MONDAY2002"; proc print data=work.monday2002; run;
+ 
+3)
+data lowmale lowfemale; set learn.blood;
+where Chol lt 100 and Chol is not missing;
+
+if Gender = 'Female' then output lowfemale; else if Gender = 'Male' then output lowmale; run;
+
+title "Listing of LOWMALE"; proc print data=lowmale noobs; run;
+
+title "Listing of LOWFEMALE"; proc print data=lowfemale noobs; run;
+ 
+
+
+
+
+
+
+
+1)
+data health;
+set learn.health;
+BMI = (Weight/2.2) / (Height*.0254)**2; BMIRound = round(BMI);  BMIRound_tenth = round(BMI,.1); BMIGroup = round(BMI,5); BMITrunc = int(BMI); run;
+
+title "Listing of HEALTH"; proc print data=health noobs;
+run;
+
+
+5)
+data psychscore; set learn.psych;
+ScoreAve = mean(largest(1,of Score1-Score5),
+largest(2,of Score1-Score5), largest(3,of Score1-Score5));
+if n(of Ques1-Ques10) ge 7 then QuesAve = mean(of Ques1-Ques10); Composit = ScoreAve + 10*QuesAve; keep ID ScoreAve QuesAve Composit; run;
+
+title "Listing of PSYCHSCORE"; proc print data=psychscore noobs; run;
+
+
+8)
+data random;
+do i=1 to 1000;
+x=int(rand('uniform')*5)+1 /*OR*/ x=int(ranuni(0)*5+1);output ;end;
+run;
+proc freq data=random; tables x/missing;
+run;
+ 
+2)
+data mixed; set mixed;
+length First Last $ 15 NameHard $ 20; NameLow = lowcase(Name);
+NameProp = propcase(Name);
+First = lowcase(scan(Name,1,' ')); Last = lowcase(scan(Name,2,' '));
+substr(First,1,1) = upcase(substr(First,1,1)); substr(Last,1,1) = upcase(substr(Last,1,1)); NameHard = catx(' ',First,Last);
+drop First Last;
+run;
+
+proc print data=mixed;
+run;
+6)
+data study; set study;
+length GroupDose $ 6;
+GroupDose = catx('-',Group,Dose);
+run;
+
+proc print data=study;
+run;
+
+data study; set study;
+length GroupDose $ 6;
+GroupDose = trim(Group) || '-' || Dose;
+run;
+
+proc print data=study;
+run;
+13)
+data exact within25; set learn.social;
+if SS1 eq SS2 then output exact; else if spedis(SS1,SS2) le 25 and not missing(SS1) and
+not missing(SS2) then output within25;
+run;
+title "Listing of EXACT"; proc print data=exact noobs; run;
+title "Listing of WITHIN25"; proc print data=within25 noobs; run;
+17)
+ 
+data personal;
+set learn.personal(drop=Food1-Food8); substr(SS,1,7) = '******'; substr(AcctNum,5,1) = '-';
+run;
+title "Listing of PERSONAL (with masked values)";
+proc print data=personal noobs;
+run;
+
+
+3)
+data nonines; set learn.nines;
+array nums{*} _numeric_; do i = 1 to dim(nums); if nums{i} = 999 then call missing(nums{i}); end;
+drop i;
+run;
+title "Listing of NONINES"; proc print data=nonines; run;
+ 
+
+
+
+
+
+
+
+2)
+proc sort data=sales out=sales; by Region;
+run;
+
+proc print data=sales; by Region;
+id Region;
+var Quantity TotalSales; sumby Region;
+run;
+4)
+proc print data=blood(obs=5) noobs; var SrNo Gender BloodGroup;
+run
+Chapter 15:
+1)
+title "First 5 Observations from Blood Data Set"; proc report data=learn.blood(obs=5) nowd headline; column Subject WBC RBC;
+define Subject / display "Subject Number" width=7;
+define WBC / "White Blood Cells" width=6 format=comma6.0; define RBC / "Red Blood Cells" width=5 format=5.2;
+run; quit;
+ 
+4)
+proc report data=bloodpressure nowd; column Gender SBP DBP Hypertensive; define Gender / Group width=6; define SBP / display width=5;  define DBP / display width=5;
+define Hypertensive / computed "Hypertensive?" width=13; compute Hypertensive / character length=3;
+if Gender = 'F' and (SBP gt 138 or DBP gt 88) then Hypertensive = 'Yes';
+else Hypertensive='No'; if Gender = 'M' and
+(SBP gt 140 or DBP gt 90) then Hypertensive = 'Yes'; else Hypertensive = 'No'; endcomp;
+run; quit;
+5)
+title "Patient Age Groups";
+proc report data=learn.bloodpressure nowd; column Gender Age AgeGroup;
+define Gender / width=6; define Age / display width=5;
+define AgeGroup / computed "Age Group"; compute AgeGroup / character length=5; if Age gt 50 then AgeGroup = '> 50';
+else if not missing(Age) then AgeGroup = '<= 50'; endcomp;
+run; quit;
+ 
+
+
+
+
+
+
+
+1)
+options fmtsearch=(learn);
+
+title "Statistics on the College Data Set";
+proc means data=learn.college
+n nmiss mean median min max maxdec=2; var ClassRank GPA;
+run;
+2)
+
+proc format library=learn; value $yesno 'Y','1' = 'Yes' 'N','0' = 'No'
+'	'	= 'Not Given'; value $size 'S' = 'Small' 'M' = 'Medium'
+'L' = 'Large'
+'	' = 'Missing'; value $gender 'F' = 'Female' 'M' = 'Male'
+'	' = 'Not Given';
+run;
+data learn.college;
+length StudentID $ 5 Gender SchoolSize $ 1; do i = 1 to 100;
+StudentID = put(round(ranuni(123456)*10000),z5.); if ranuni(0) lt .4 then Gender = 'M';
+else Gender = 'F';
+if ranuni(0) lt .3 then SchoolSize = 'S';
+else if ranuni(0) lt .7 then SchoolSize = 'M'; else SchoolSize = 'L'; if ranuni(0) lt .2 then Scholarship = 'Y'; else Scholarship = 'N'; GPA = round(rannor(0)*.5 + 3.5,.01); if GPA gt 4 then GPA = 4; ClassRank = int(ranuni(0)*60 + 41);
+if ranuni(0) lt .1 then call missing(ClassRank); if ranuni(0) lt .05 then call missing(SchoolSize);
+if ranuni(0) lt .05 then call missing(GPA); output; end;
+format Gender $gender1.
+SchoolSize $size. Scholarship $yesno.; drop i;
+run;
+options nofmterr; format catalog;
+proc sort data=learn.college out=learn.college2; by Gender SchoolSize;
+run;
+title "Statistics on the College Data Set - Using BY"; title2 "Broken down by Gender and School
+Size";
+proc means data=learn.college2 n
+ 
+nmiss mean median min max maxdec=2;
+by Gender SchoolSize; var ClassRank GPA; run;
+title "Statistics on the College Data Set - Using CLASS"; title2 "Broken down by Gender and School
+Size";
+proc means data=learn.college n nmiss mean median min max maxdec=2;
+class Gender SchoolSize; var ClassRank GPA;
+run;
+
+
+3)
+proc sort data=learn.college out=college; by SchoolSize;
+run;
+title "Statistics on the College Data Set - Using BY"; title2 "Broken down by School Size";
+proc means data=college n
+mean median min max
+maxdec=2;
+by SchoolSize;
+var ClassRank GPA;run;
+title "Statistics on the College Data Set - Using CLASS"; title2 "Broken down by School Size";
+proc means data=learn.college n
+mean median min max
+maxdec=2;
+class SchoolSize; var ClassRank GPA; run;
+
+
+5)
+proc format;
+value rank low-70 = 'Low to 70' 71-high = '71 and higher';  run;
+title "Scholarship by Class Rank"; proc freq data=learn.college; tables Scholarship*ClassRank; format ClassRank rank.;
+run;
