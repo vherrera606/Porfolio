@@ -1,0 +1,128 @@
+
+
+```{r}
+library(boot)
+library(data.table)
+library(bootstrap)
+library(carData)
+data(Davis)
+```
+
+```{r}
+
+set.seed(1)
+x <- Davis$weight #in kg
+Davis
+x <- sort(x, decreasing = FALSE)
+n <- length(x)
+
+```
+
+```{r}
+mean.x <- mean(x)
+mean.x # mean of weights in kg
+
+median.x <- median(x)
+median.x # mean of weights in kg
+
+SE.x   <- sd(x) / sqrt(length(x))
+SE.x # standard error of weights
+
+```
+
+```{r}
+# we can apply the bootstrap technique to estimate the population median
+median.boot <- numeric()   # Create an empty vector
+for (i in 1:10000){
+  sample.boot    <- sample(x, size = length(x), replace=TRUE)
+  median.boot[i] <- median(sample.boot)
+}
+SE.boot <- sd(median.boot)/sqrt(10000)
+SE.boot
+```
+
+```{r}
+#boot() from the boot library.
+f.med       <- function(Y,i) median(Y[i])
+median.boot <- boot(x, R = 10000, statistic = f.med)
+SE.boot     <- sd( as.vector(median.boot$t))/sqrt(10000)
+SE.boot
+```
+
+```{r}
+   theta <- function(x){median(x)}
+                             
+   results <- jackknife(x,theta) 
+   
+   results$jack.se
+   
+
+quantile(results$jack.values,0.975)
+quantile(results$jack.values,0.025)
+   
+```
+
+```{r}
+median.int.95.BCa <- boot.ci(median.boot, conf = .95, type="bca") 
+median.int.95.BCa #bias corrected bootstrap method, BCa
+```
+
+
+
+
+```{r}
+# we can apply the bootstrap technique to estimate the population mean
+mean.boot <- numeric()   # Create an empty vector
+for (i in 1:10000){
+  sample.boot    <- sample(x, size = length(x), replace=TRUE)
+  mean.boot[i] <- mean(sample.boot)
+}
+SE.boot <- sd(mean.boot)
+SE.boot
+```
+
+```{r}
+#boot() from the boot library.
+f.mea       <- function(Y,i) mean(Y[i])
+mean.boot <- boot(x, R = 10000, statistic = f.mea)
+SE.boot     <- sd( as.vector(mean.boot$t))
+SE.boot
+```
+
+```{r}
+# Sample mean
+theta <- function(x){mean(x)}
+# Jackknife the mean
+jackmean <- jackknife(x,theta)
+# Bias-corrected jackknife estimate
+meanjack = mean(x) - jackmean$jack.bias
+meanjack
+# Sample standard deviation
+theta <- function(x){sd(x)}
+# Jackknife the standard deviation
+jacksd <- jackknife(x,theta)
+# Bias-corrected jackknife estimate 
+sdjack = sd(x) - jacksd$jack.bias
+
+JackSE.x   <- sdjack / sqrt(length(x))
+JackSE.x # standard error of weights
+
+mean.int.95 <- meanjack + qt( c(0.025, 0.975), length(x)) * JackSE.x
+mean.int.95
+   
+```
+
+```{r}
+mean.int.95.BCa <- boot.ci(mean.boot, conf = .95, type="bca") 
+mean.int.95.BCa #bias corrected bootstrap method, BCa
+```
+
+```{r}
+mean.int.95 <- mean.x + qt( c(0.025, 0.975), length(x)) * SE.x
+mean.int.95
+```
+
+```{r}
+median.int.95 <- median(x) + qt( c(0.025, 0.975), length(x)) * SE.x 
+median.int.95 
+```

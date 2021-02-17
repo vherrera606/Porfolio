@@ -1,0 +1,216 @@
+
+
+```{r}
+library(tidyverse)
+library(gapminder)
+library(knitr)
+library(ggplot2)
+data(gapminder)
+glimpse(gapminder)
+```
+
+#Question 1)
+
+#(A)
+
+```{r}
+gapminder %>%
+  filter(country == "United States") %>%
+  select(year)
+```
+These are years of available date for the United States.
+
+1952				
+1957				
+1962				
+1967				
+1972				
+1977				
+1982				
+1987				
+1992				
+1997
+2002				
+2007	
+
+#(B)
+
+```{r}
+am <- filter(gapminder, continent == "Americas") 
+
+distinct(am, year)
+```
+These are the years available in the Americas.
+
+1952 1957 1962 1967 1972 1977 1982 1987 1992 1997 2002 2007
+
+#Question 2
+
+#(A)
+
+```{r}
+gapminder %>%
+  filter(country == "United States") %>%
+  filter(lifeExp > 70) %>%
+  select(year, lifeExp)
+```
+Life expectancy exceeded 70 these years in the United States.
+
+1962	70.210			
+1967	70.760			
+1972	71.340			
+1977	73.380			
+1982	74.650			
+1987	75.020			
+1992	76.090			
+1997	76.810			
+2002	77.310			
+2007	78.242	
+
+#(B)
+
+```{r}
+gapminder %>%
+  filter(country == "Honduras") %>%
+  filter(lifeExp > 70) %>%
+  select(year, country, lifeExp)
+```
+Life expectancy exceeded 70 this year in Honduras.
+
+2007	Honduras	70.198	
+
+#(C)
+
+```{r}
+gapminder %>%
+  filter(lifeExp > 70) %>%
+  filter(continent == "Americas") %>%
+  group_by(country) %>%
+  select(country, lifeExp) %>%
+  summarize(mean_lifeExp = mean(lifeExp) )
+```
+Average life expectancy when 70 years was exceeded in the Americas by country.
+
+Argentina	          73.11540			
+Brazil	            71.69800			
+Canada	            76.01230			
+Chile	              74.90200			
+Colombia	          71.62800			
+Costa Rica	        75.54714			
+Cuba	              74.65738			
+Dominican Republic	71.54100			
+Ecuador	            73.82633			
+El Salvador       	71.30600	
+Guatemala         	70.25900			
+Honduras          	70.19800			
+Jamaica           	71.67600			
+Mexico            	74.05550			
+Nicaragua         	71.86750			
+Panama            	73.07400			
+Paraguay          	71.25350			
+Peru              	71.42100			
+Puerto Rico        	74.49244			
+United States     	74.38120	
+Uruguay	            73.56483			
+Venezuela         	71.99980
+
+#Question 3
+
+#(A)
+
+```{r}
+gapminder %>%
+  filter(pop > 1000000000) %>%
+  filter(year == "2007") %>%
+  select(year, country, pop)
+```
+China and India had a population over a billion in 2007.
+
+2007	China	1318683096		
+2007	India	1110396331
+
+#(B)
+
+```{r}
+gapminder %>%
+  filter(pop > 1000000000) %>%
+  select(year, country, pop) %>%
+  arrange(year) %>%
+  head(n=10)
+```
+China reached a population of a billion first in 1982.
+
+1982	China	1000281000	
+
+#Question 4
+
+#(A)
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  select(year, country, gdpPercap) %>%
+  arrange(gdpPercap) %>%
+  head(n=10)
+```
+In 2007 these three countries had the lowest per capita GDP.
+
+2007	Congo, Dem. Rep.	277.5519		
+2007	Liberia	          414.5073		
+2007	Burundi	          430.0707		
+
+#(B)
+
+```{r}
+gapminder %>%
+  filter(year == 1962) %>%
+  select(year, country, gdpPercap) %>%
+  arrange(gdpPercap) %>%
+  head(n=10)
+```
+In 1962 these three countries had the lowest per capita GDP.
+
+1962	Burundi	355.2032		
+1962	Eritrea	380.9958		
+1962	Myanmar	388.0000	
+
+#(C)
+
+The majority of the countries are in Africa with bottom 3 per capita GDP.
+
+#Question 5
+
+#(A)
+
+```{r}
+plot(gapminder$gdpPercap, gapminder$lifeExp)
+```
+
+#(B)
+
+```{r}
+plot(log(gapminder$gdpPercap), log(gapminder$lifeExp))
+```
+
+#(C)
+
+```{r}
+ qplot(log(gdpPercap), log(lifeExp), colour = continent, data = gapminder)
+```
+
+#(D)
+
+Lower GDP and High Life Expectany:
+A lot of Asia
+Some of the America
+Some of the Africa
+Some of the Europe
+
+
+High GDP and High Life Expectany:
+A lot of Europe
+A lot of Oceania
+Some of the America
+Some of the Asia
+
+

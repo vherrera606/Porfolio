@@ -1,0 +1,115 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+library("tidytext")
+library("dplyr")
+library("tidyr")
+library("stringr")
+library("topicmodels")
+library("tm")
+```
+
+
+
+
+```{r}
+titles <- c("Meditations", "The Republic",
+            "Don Quixote", "Anthem")
+```
+
+
+
+```{r}
+library(gutenbergr)
+
+books <- gutenberg_works(title %in% titles) %>%
+  gutenberg_download(meta_fields = "title")
+```
+
+As pre-processing, we divide these into chapters, use tidytext's unnest_tokens() to separate them into words, then remove stop_words. We're treating every chapter as a separate "document", each with a name like Great Expectations_1 or Pride and Prejudice_11. (In other applications, each document might be one newspaper article, or one blog post).
+
+```{r}
+# divide into documents, each representing one chapter
+by_chapter <- books %>%
+  group_by(title) %>%
+  mutate(chapter = cumsum(str_detect(text, regex("^chapter ", ignore_case = TRUE)))) %>%
+  ungroup() %>%
+  filter(chapter > 0) %>%
+  unite(document, title, chapter)
+
+# split into words
+by_chapter_word <- by_chapter %>%
+  unnest_tokens(word, text)
+
+# find document-word counts
+word_counts <- by_chapter_word %>%
+  anti_join(stop_words) %>%
+  count(document, word, sort = TRUE) %>%
+  ungroup()
+
+word_counts
+```
+
+Right now our data frame word_counts is in a tidy form, with one-term-per-document-per-row, but the topicmodels package requires a DocumentTermMatrix. As described in Chapter 5.2, we can cast a one-token-per-row table into a DocumentTermMatrix with tidytext's cast_dtm().
+
+```{r}
+chapters_dtm <- word_counts %>%
+  cast_dtm(document, word, n)
+
+chapters_dtm
+```
+
+We can then use the LDA() function to create a four-topic model. In this case we know we're looking for four topics because there are four books; in other problems we may need to try a few different values of k.
+
+```{r}
+chapters_lda <- LDA(chapters_dtm, k = 4, control = list(seed = 1234))
+chapters_lda
+```
+
+Much as we did on the Associated Press data, we can examine per-topic-per-word probabilities.
+
+```{r}
+chapter_topics <- tidy(chapters_lda, matrix = "beta")
+chapter_topics
+```
+
+Notice that this has turned the model into a one-topic-per-term-per-row format. For each combination, the model computes the probability of that term being generated from that topic. For example, the term "joe" has an almost zero probability of being generated from topics 1, 2, or 3, but it makes up 1.45% of topic 4.
+
+We could use dplyr's top_n() to find the top 5 terms within each topic.
+
+```{r}
+top_terms <- chapter_topics %>%
+  group_by(topic) %>%
+  top_n(5, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+top_terms
+```
+
+This tidy output lends itself well to a ggplot2 visualization (Figure 6.4).
+
+
+```{r}
+library(ggplot2)
+
+top_terms %>%
+  mutate(term = reorder(term, beta)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip()
+```
+
+These topics are pretty clearly associated with the four books! There's no question that the topic of "captain", "nautilus", "sea", and "nemo" belongs to Twenty Thousand Leagues Under the Sea, and that "jane", "darcy", and "elizabeth" belongs to Pride and Prejudice. We see "pip" and "joe" from Great Expectations and "martians", "black", and "night" from The War of the Worlds. We also notice that, in line with LDA being a "fuzzy clustering" method, there can be words in common between multiple topics, such as "miss" in topics 1 and 4, and "time" in topics 3 and 4.
+
+
+
+
+
+

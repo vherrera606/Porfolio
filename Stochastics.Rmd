@@ -1,0 +1,308 @@
+
+
+```{r}
+library(stats)
+```
+
+
+##A Gibbs Sampler for Prevalence
+```{r}
+#Agresti
+
+eta = .95 #Sensitivity P{T = 0 | D = 0}
+theta = .97 #Specificity P{T = 1 | D = 1}
+A = 31 #test positive Agresti  #(T = 1)
+N = 504 #number of subjects Agresti
+
+t = A/N #estimate of tau ~ P(T = 1)
+t
+
+p = (t + theta - 1)/(eta + theta - 1) #estimate of pi ~ P{D = 1}
+p
+
+```
+This is only an estmations of tau and pi. Through iteration an more approx value can be found using distibution simulations of X and Y to find PI and GAMMA
+```{r}
+
+#i.d. zs7775
+set.seed(775)
+
+m = 100000 # iterations
+GAMMA = numeric(m)
+PI = numeric(m); PI[1] = .5 # vector for results, initial value
+alpha = 1.5; beta = 35 # parameters of beta prior
+eta = .95; theta = .97 # sensitivity; specificity
+n = 500; A = 29; B = n - A # data
+
+for (i in 2:m)
+{
+num.x = PI[i-1]*eta; den.x = num.x + (1-PI[i-1])*(1 - theta)
+X = rbinom(1, A, num.x/den.x)
+num.y = PI[i-1]*(1 - eta); den.y = num.y + (1-PI[i-1])*theta
+Y = rbinom(1, B, num.y/den.y)
+PI[i] = rbeta(1, X + Y + alpha, n - X - Y + beta)
+
+GAMMA[i] =  PI[i]*eta / (PI[i]*eta + (1-PI[i])*(1-theta) )
+
+}
+
+aft.brn = seq(floor(m/2),m)
+
+quantile(PI[aft.brn], c(.025, .975)) # 95% Bayesian Posterior CI for prevalence P{D = 1}.
+mean(PI[aft.brn]) # Point estimate
+
+quantile(GAMMA[aft.brn], c(.025, .975)) # 95% Bayesian Posterior CI for PP Positive: P{D = 1 | T = 1}
+mean(GAMMA[aft.brn]) # Point estimate GAMMA
+```
+
+```{r}
+par(mfrow=c(2,1))
+plot(aft.brn, PI[aft.brn], type="l")
+hist(PI[aft.brn], prob=T, col="skyblue2")
+abline(v= quantile(PI[aft.brn], c(.025, .975)), col="red")
+par(mfrow=c(1,1))
+```
+History plot of PI
+Histogram of samples values of PI
+
+```{r}
+par(mfrow=c(2,1))
+plot(aft.brn, GAMMA[aft.brn], type="l")
+hist(GAMMA[aft.brn], prob=T, col="skyblue2")
+abline(v= quantile(GAMMA[aft.brn], c(.025, .975)), col="red")
+par(mfrow=c(1,1))
+```
+
+History plot of GAMMA
+Histogram of samples values of GAMMA
+
+
+##M/M/1/2 Queue
+```{r}
+lam = 2; mu = 3
+
+p = c(9/16, 6/19, 4/19)
+p
+
+Q = matrix(c( -lam, lam,        0,
+                mu, -(lam+mu),   lam,
+                0,    mu,        -mu), nrow=3, byrow=T)
+Q
+
+Qp = Q*p
+Qp
+
+SUM_Qp = vector()
+for(i in 1:3)
+{
+  for(j in 1:3)
+  {
+    SUM_Qp[i] = Qp[i, j]
+  }
+}
+
+sum(SUM_Qp)
+
+```
+
+```{r}
+N = 2; lam = 2; mu = 3
+P = c(9/16, 6/19, 4/19)
+
+
+P[1]
+P[2]
+P[3]
+```
+
+```{r}
+#server is idle #busy 1 - P0
+P0 = P[1]  
+P0
+
+#average number in the system
+L = 0*(P[1]) + 1*(P[2]) + 2*(P[3]) 
+L
+
+#effective rate of entry because customers attempting to enter the queue are lost when the queue is at capacity
+lamE = (1 - P[3])*lam 
+lamE
+
+#effective arrival rate in Little's formula we see that the average entering customer spends W time in the system
+W = L/lamE 
+W
+
+#average number LQ of customers in the queue. At steady state, this is the average number of customers waiting for service
+LQ = P[3]
+LQ
+```
+
+```{r}
+#average length of time an entering customer spends in the queue is
+WQ = LQ/lamE
+WQ
+
+WQ = W - (1/mu)
+WQ
+
+```
+
+```{r}
+
+
+N = 2; lam = 2; mu = 3; rho = lam/mu
+m = 50000; x = t = numeric(m); x[1] = 0
+for (i in 2:m) 
+  {
+    if (x[i-1] == 0) 
+      {
+      x[i] = 1; t[i-1] = rexp(1, lam)
+      } 
+    else 
+      {
+          if (x[i-1] == N) 
+          {
+              x[i] = N-1; t[i-1] = rexp(1, mu)} 
+          else 
+          {
+              x[i] = sample(x[i-1]+c(-1,1), 1, prob=c(mu, lam));
+              t[i-1] = rexp(1, lam+mu) 
+          } 
+      } 
+  }
+t.avg = numeric(N+1); states=0:N; p = rho^states *(1-rho)/(1-rho^(N+1))
+for (j in 1:(N+1)) { t.avg[j] = sum(t[x==(j-1)])/sum(t) }
+round(cbind(states, p, t.avg), 3)
+
+
+
+```
+
+```{r}
+
+P = (1/120)*matrix(c(118, 2, 0, 
+                      3, 115, 2, 
+                      0, 3, 117), nrow=3, byrow=T)
+P
+
+#i.d. zs7775
+set.seed(775)
+m = 10^6; y = numeric(m); y[1] = 2
+for (i in 2:m) y[i] = sample(1:3, 1, prob=P[y[i-1],])
+round(summary(as.factor(y))/m, 4)
+
+
+```
+
+```{r}
+
+lam = 2; mu = 3
+Q = matrix(c(-lam, lam,        0,
+                mu, -(lam+mu),   lam,
+                0,    mu,        -mu), byrow=T, nrow=3)
+I = diag(3); g = eigen(t(Q+I))$vectors[ ,3]
+p = g/sum(g); p
+
+round(p %*% Q, 5) # verification
+
+```
+
+
+##Several Confidence Intervals for the Mean ???? of an Unknown Population Distribution
+
+```{r}
+#i.d. zs7775
+set.seed(775)
+x = round(sort(rexp(20, 1/20)), 2); x
+summary(x); sd(x)
+```
+
+```{r}
+mu = mean(x)
+s = sd(x)
+n = 20
+
+L = mu - 2.08596*s/sqrt(n)
+U = mu + 2.08596*s/sqrt(n)
+CI = c(L, U)
+T_test = CI
+T_test
+```
+
+```{r}
+
+
+t.test(x)$conf.int
+```
+
+
+```{r}
+#i.d. zs7775
+set.seed(775)
+x = round(sort(rexp(20, 1/mu)), 2); 
+n = length(x); obs.mean = mean(x)
+# Bootstrap World--Estimated Distribution of V
+B = 10000
+re.x = rexp(B*n, 1/obs.mean) # This is the only change, but a BIG one
+RDTA = matrix(re.x, nrow=B) # B x n matrix of resamples
+re.mean = rowMeans(RDTA) # vector of B `x-bar-star's
+re.v = re.mean / obs.mean # vector of v-star's (scale param)
+v.UL = quantile(re.v, c(.975,.025)) # estimated quantiles of V
+# Real World--Bootstrap Confidence Interval
+PB = obs.mean / v.UL
+PB
+```
+
+```{r}
+#i.d. zs7775
+set.seed(775);
+x = round(sort(rexp(20, 1/mu)), 2); 
+n = length(x)
+a = mean(x); 
+GA = a/qgamma(c(.975, .025), n, n)
+GA
+```
+
+```{r}
+#i.d. zs7775
+set.seed(775)
+x = round(sort(rexp(20, 1/mu)), 2); 
+n = length(x); obs.mean = mean(x)
+# Bootstrap World--Estimated Distribution of D (difference)
+B = 10000
+re.x = sample(x, B*n, repl=T)
+RDTA = matrix(re.x, nrow=B) # B x n matrix of resamples
+re.mean = rowMeans(RDTA) # vector of B `x-bar-star's
+re.d = re.mean - obs.mean # vector of d-star's
+d.UL = quantile(re.d, c(.975,.025)) # estimated quantiles of V
+# Real World--Bootstrap Confidence Interval 
+NPB = obs.mean - d.UL
+NPB
+```
+
+```{r}
+t.test(x)$conf.int
+
+25.25713-12.51187
+```
+
+```{r}
+PB
+28.92608-12.04712
+```
+
+```{r}
+GA
+29.19244-12.01954
+```
+
+```{r}
+NPB
+23.28155-12.39790
+```
+
+The parametic bootstrap and the Gamm distribution seem to be most similiar in both the spread of the CI's but as well as the interval values themselves.
+
+All intervals assume they include 20, so no only t.
+
+Parametric bootstrap assuming the mean estimates the scale parameter of EXP gives essentially the same result as the exact CI.
