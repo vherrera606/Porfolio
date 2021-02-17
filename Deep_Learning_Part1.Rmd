@@ -1,0 +1,190 @@
+
+##Original
+
+Deep Learning classification task with Keras is being performed.
+
+Three columns with 10000 rows of values in x_data
+If above 1.5 is set to 1 or else set to 0 in y_data
+```{r}
+# Input: 10000 rows and 3 columns of uniform distribution
+x_data=matrix(data=runif(30000), nrow=10000, ncol=3)
+
+# Output
+y_data=ifelse(rowSums(x_data) > 1.5, 1, 0)
+
+head(x_data)
+
+
+```
+
+```{r}
+head(y_data)
+```
+
+binary classification occurs to create one-hot vector.
+```{r}
+library(keras)
+library(tidyverse)
+
+y_data_oneh=to_categorical(y_data, num_classes = 2)
+
+head(y_data_oneh)
+```
+
+sequential model in Keras.
+First layer has shape while the second layer has the transfer of shape.
+Two outcomes are contained within the L3 output.  
+```{r}
+model = keras_model_sequential() %>%   
+  layer_dense(units = 64, activation = "relu", input_shape = ncol(x_data)) %>%
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = ncol(y_data_oneh), activation = "softmax")
+  
+model
+```
+Loss and optimizer functions, and the metric to optimize.
+fit(train) model and the plot
+```{r}
+compile(model, loss = "categorical_crossentropy", optimizer = optimizer_rmsprop(), metrics = "accuracy")
+  
+history = fit(model,  x_data, y_data_oneh, epochs = 20, batch_size = 128, validation_split = 0.2)
+
+plot(history)
+```
+
+1000 rows, 3 columns
+```{r}
+x_data_test=matrix(data=runif(3000), nrow=1000, ncol=3)
+dim(x_data_test)
+
+
+```
+
+one-hot decoding using predict_classes
+```{r}
+y_data_pred=predict_classes(model, x_data_test)
+
+glimpse(y_data_pred)
+```
+
+predict will return the probabilities for each class
+```{r}
+y_data_pred_oneh=predict(model, x_data_test)
+
+dim(y_data_pred_oneh)
+
+head(y_data_pred_oneh)
+```
+
+
+Evaluating the model 
+If above 1.5 is set to 1 or else set to 0 in y_data_real
+binary classification occurs to create one-hot vector.
+```{r}
+y_data_real=ifelse(rowSums(x_data_test) > 1.5, 1, 0)
+y_data_real_oneh=to_categorical(y_data_real)
+```
+
+
+Evaluate Training data and Test data 
+```{r}
+## Training data
+evaluate(model, x_data, y_data_oneh, verbose = 0)
+
+## Test data (we need the one-hot version)
+evaluate(model, x_data_test, y_data_real_oneh, verbose = 0)
+```
+
+
+##Modified
+
+```{r}
+# Input: 10000 rows and 3 columns of uniform distribution
+x_data=matrix(data=runif(30000), nrow=10000, ncol=3)
+
+# Output
+y_data=ifelse(rowSums(x_data) > 1.5, 1, 0)
+
+head(x_data)
+
+```
+
+```{r}
+head(y_data)
+```
+
+```{r}
+library(keras)
+library(tidyverse)
+
+y_data_oneh=to_categorical(y_data, num_classes = 2)
+
+head(y_data_oneh)
+```
+
+```{r}
+model = keras_model_sequential() %>%   
+  layer_dense(units = 4, activation = "relu", input_shape = ncol(x_data)) %>%
+  layer_dense(units = 2, activation = "relu") %>%
+  layer_dense(units = ncol(y_data_oneh), activation = "softmax")
+  
+model
+```
+
+```{r}
+compile(model, loss = "categorical_crossentropy", optimizer = optimizer_rmsprop(), metrics = "accuracy")
+  
+history = fit(model,  x_data, y_data_oneh, epochs = 40, batch_size = 128, validation_split = 0.2)
+
+plot(history)
+```
+
+```{r}
+x_data_test=matrix(data=runif(3000), nrow=1000, ncol=3)
+dim(x_data_test)
+
+y_data_pred=predict_classes(model, x_data_test)
+
+```
+
+```{r}
+glimpse(y_data_pred)
+```
+
+```{r}
+y_data_pred_oneh=predict(model, x_data_test)
+
+dim(y_data_pred_oneh)
+
+```
+
+```{r}
+head(y_data_pred_oneh)
+```
+
+```{r}
+y_data_real=ifelse(rowSums(x_data_test) > 1.5, 1, 0)
+y_data_real_oneh=to_categorical(y_data_real)
+```
+
+```{r}
+## Training data
+evaluate(model, x_data, y_data_oneh, verbose = 0)
+
+## Test data (we need the one-hot version)
+evaluate(model, x_data_test, y_data_real_oneh, verbose = 0)
+```
+
+The original sequential model had less loss but also less accuracy in both training and test evaluation. The model needed less epochs to reach its max limits in accuracy and min loss.
+
+While the modified model, with less units per layer but more epochs, had more loss and also greater accuracy. The model needed more epochs to reach its max limits  in accuracy and min loss.
+
+
+
+
+
+  
+  
+  
+  
+  
