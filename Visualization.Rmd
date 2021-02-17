@@ -1,0 +1,52 @@
+
+
+```{r}
+library(statebins)
+library(readxl)
+library(tidyverse)
+```
+
+```{r}
+
+Bach <- read_xls(path = "GeoFRED_Bachelor's_Degree_or_Higher_by_State_Percent.xls", skip = 1)
+
+colnames(Bach)[colnames(Bach) == "Region Name"] <- "Region_Name"
+colnames(Bach)[colnames(Bach) == "2006"] <- "Twenty06"
+
+
+
+Inc <- read_xls(path = "GeoFRED_Median_Household_Income_by_State_Percent_Change.xls", skip = 1)
+
+colnames(Inc)[colnames(Inc) == "Region Name"] <- "Region_Name"
+colnames(Inc)[colnames(Inc) == "2006"] <- "Twenty06"
+```
+
+
+```{r}
+
+
+statebins_continuous(state_data = Bach, state_col = "Region_Name",
+                     text_color = "white", value_col = "Twenty06",
+                     brewer_pal= "Reds", font_size = 3,
+                     legend_title="Percent Bachelor's Degree or Higher")
+
+
+statebins_continuous(state_data = Inc, state_col = "Region_Name",
+                     text_color = "black", value_col = "Twenty06",
+                     brewer_pal="Blues", font_size = 4,
+                     legend_title="Percent Median household Income")
+
+```
+
+
+```{r}
+
+statebins(state_data = Bach, 
+          state_col = "Region_Name", value_col = "Twenty06",
+          text_color = "black", breaks = 5,
+          labels = c("0-9", "10-20", "21-30", "31-40", "41-50"),
+          brewer_pal="Reds", font_size = 3, legend_title= "Percent Bachelor's Degree or Higher")
+
+```
+
+
